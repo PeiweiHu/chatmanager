@@ -4,4 +4,4 @@ cd $ROOT_FOLDER
 # yapf check
 yapf -d -e docs --style=google --recursive .
 # mypy check
-mypy ./ChatTool
+mypy ./chatmanager

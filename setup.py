@@ -4,7 +4,7 @@ with open('README.md') as f:
     long_description = f.read()
 
 setup(
-    name='ChatTool',
+    name='chatmanager',
     version='0.0.1',
     author="Peiwei Hu",
     author_email='jlu.hpw@foxmail.com',
@@ -13,7 +13,7 @@ setup(
     long_description_content_type='text/markdown',
     packages=find_packages(),
     include_package_data=True,
-    url='https://github.com/PeiweiHu/ChatTool',
+    url='https://github.com/PeiweiHu/chatmanager',
     install_requires=[
         'openai',
         'tiktoken',

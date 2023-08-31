@@ -76,4 +76,4 @@ jobs:
         python -m pip install mypy openai tiktoken
     - name: Test with mypy
       run: |
-        mypy ChatTool
+        mypy chatmanager
