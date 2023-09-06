@@ -1,7 +1,17 @@
 from typing import Optional, List
 
+import openai
+
 from .session import Session
 from .key import KeyGroup
+
+
+def send_msg(messages) -> str:
+    response = openai.Completion.create(
+        model = "gpt-3.5-turbo",
+        messages = messages,
+    )
+    return response
 
 
 class ChatManager:
