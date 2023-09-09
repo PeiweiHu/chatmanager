@@ -35,8 +35,14 @@ class KeyGroup:
         self.key_index: List[str] = []
         self.cur_key_index: Optional[int] = None
 
-    def get_key(self) -> str:
+    def has_key(self) -> bool:
+        return len(self.keys) != 0
+
+    def get_key(self) -> Optional[str]:
         """ Get the next key to use according to strategy """
+
+        if len(self.keys) == 0:
+            return None
 
         name = self.strategy()
 

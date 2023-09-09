@@ -1,5 +1,4 @@
 from typing import Optional, List, Dict, Tuple
-from dataclasses import dataclass
 
 import openai
 
@@ -7,15 +6,13 @@ from .session import Session, ChatMessage, ChatResponse
 from .key import KeyGroup
 
 
-@dataclass
 class ChatSetup:
     """ Setup openai interface
 
     """
 
     model: str = "gpt-3.5-turbo"
-    base: str = "https://api.openai.com"
-    key: Optional[str] = None
+    api_base: str = "https://api.openai.com/v1"
 
 
 """
@@ -52,7 +49,7 @@ response = openai.ChatCompletion.create(
 """
 
 
-def send_msg(msg: List[Dict[str, str]], setup: ChatSetup) -> ChatResponse:
+def send_msg(msg: List[Dict[str, str]], key) -> ChatResponse:
     """Send a message to openai
 
     Args:
@@ -64,12 +61,12 @@ def send_msg(msg: List[Dict[str, str]], setup: ChatSetup) -> ChatResponse:
 
     """
 
-    openai.base = setup.base
-    openai.api_key = setup.key
+    openai.api_base = ChatSetup.api_base
+    openai.api_key = key
 
     #TODO different parameters
     response = openai.ChatCompletion.create(
-        model=setup.model,
+        model=ChatSetup.model,
         messages=msg,
     )
 
@@ -102,7 +99,7 @@ class ChatManager:
         """
 
         # key check
-        if self.setup.key is None:
+        if not self.keys.has_key():
             return False
 
         # cur session check
@@ -110,6 +107,10 @@ class ChatManager:
             return False
 
         return True
+
+    def add_key(self, name: str, key: str) -> None:
+
+        self.keys.add_key(name, key)
 
     def send(self, msg: ChatMessage) -> Optional[ChatResponse]:
         """Send a message to openai
@@ -126,7 +127,7 @@ class ChatManager:
             # TODO: throw error
             return None
 
-        return send_msg(msg.drain(), self.setup)
+        return send_msg(msg.drain(), self.keys.get_key())
 
 
     def set_session(self, name: str) -> None:

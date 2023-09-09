@@ -1,5 +1,3 @@
-import json
-import os
 from typing import Dict, Optional, List, Callable, Tuple
 
 
@@ -19,19 +17,19 @@ class ChatMessage:
     def push_system(self, msg: str) -> None:
         self.push_msg({
             "role": "system",
-            "message": msg
+            "content": msg
         })
 
     def push_user(self, msg: str) -> None:
         self.push_msg({
             "role": "user",
-            "message": msg
+            "content": msg
         })
 
     def push_assistant(self, msg: str) -> None:
         self.push_msg({
             "role": "assistant",
-            "message": msg
+            "content": msg
         })
 
     def push_msg(self, message: Dict[str, str]) -> None:
