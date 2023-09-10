@@ -1,4 +1,4 @@
-from typing import Optional, List, Dict, Tuple
+from typing import Optional, List, Dict, Callable, Any
 
 import openai
 
@@ -127,7 +127,10 @@ class ChatManager:
             # TODO: throw error
             return None
 
-        return send_msg(msg.drain(), self.keys.get_key())
+        response = send_msg(msg.drain(), self.keys.get_key())
+        assert(self.cur_session is not None)
+        self.cur_session.push(msg, response)
+        return response
 
 
     def set_session(self, name: str) -> None:
@@ -160,27 +163,16 @@ class ChatManager:
                 return session
         return None
 
-    def export_session(self, name: str, export_path: str, format: str = 'json') -> bool:
-        """Export the current session
 
-        Args:
-            name: The name of the session
-            format: The format of the export file
+    def export_session(self, export_processor: Callable[[ChatMessage, ChatResponse], Any], name: Optional[str] = None) -> Optional[str]:
 
-        Returns:
-            True if the export is successful, False otherwise
-
-        """
+        if name is None:
+            if self.cur_session is None:
+                return None
+            name = self.cur_session.name
 
         if not (session := self.get_session(name)):
             # TODO: throw error
-            return False
+            return None
 
-        handlers = {}
-
-        if not (handler := handlers.get(format)):
-            # TODO: throw error
-            return False
-
-        handler(export_path)
-        return True
+        return session.export(export_processor)

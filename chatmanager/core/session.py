@@ -1,4 +1,5 @@
-from typing import Dict, Optional, List, Callable, Tuple
+import json
+from typing import Dict, Optional, List, Callable, Tuple, Any
 
 
 class ChatMessage:
@@ -13,6 +14,9 @@ class ChatMessage:
 
     def set_repo(self, index: int, message: Dict[str, str]) -> None:
         self.repo[index] = message
+
+    def clear(self) -> None:
+        self.repo = list()
 
     def push_system(self, msg: str) -> None:
         self.push_msg({
@@ -43,9 +47,34 @@ class ChatMessage:
     def drain(self) -> List[Dict[str, str]]:
         return self.repo
 
+    def __str__(self) -> str:
+        return str(self.repo)
+
 
 class ChatResponse:
     """Parse the response from openai
+
+    {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "content": "The 2020 World Series was played in Texas at Globe Life Field in Arlington.",
+            "role": "assistant"
+          }
+        }
+      ],
+      "created": 1677664795,
+      "id": "chatcmpl-7QyqpwdfhqwajicIEznoc6Q47XAyW",
+      "model": "gpt-3.5-turbo-0613",
+      "object": "chat.completion",
+      "usage": {
+        "completion_tokens": 17,
+        "prompt_tokens": 57,
+        "total_tokens": 74
+      }
+    }
 
     Attributes:
         response: The response from openai
@@ -59,11 +88,24 @@ class ChatResponse:
     def __init__(self, response) -> None:
         self.response = response
 
+        self.choices: List[Dict[str, str]] = response["choices"]
+        self.created: int = response["created"]
+        self.id: str = response["id"]
+        self.model: str = response["model"]
+        self.usage: Dict[str, int] = response["usage"]
+
     def token_usage(self) -> int:
         return self.response["usage"]["total_tokens"]
 
     def choice_num(self) -> int:
         return len(self.response["choices"])
+
+    def get_choice(self, num: int) -> Optional[Dict[str, str]]:
+        if num >= self.choice_num():
+            # TODO: throw error
+            return None
+
+        return self.choices[num]
 
     def get_msg(self, choice:int = 0) -> Optional[str]:
         if choice >= self.choice_num():
@@ -88,3 +130,13 @@ class Session:
 
     def push(self, msg: ChatMessage, response: ChatResponse) -> None:
         self.repo.append((msg, response))
+
+    def export(self, export_processor: Callable[[ChatMessage, ChatResponse], Any]) -> str:
+        """ Export the session to a string
+
+        Args:
+            export_processor: A function that process each (message, response) pair
+        """
+
+        lst = list(map(lambda x: export_processor(x[0], x[1]), self.repo))
+        return json.dumps(lst, indent = 4)
