@@ -1,5 +1,7 @@
-from typing import Optional, List, Dict, Callable, Any
+from typing import Optional, List, Dict, Callable, Any, Union
+from concurrent import futures
 
+from typeguard import typechecked
 import openai
 
 from .session import Session, ChatMessage, ChatResponse
@@ -49,7 +51,7 @@ response = openai.ChatCompletion.create(
 """
 
 
-def send_msg(msg: List[Dict[str, str]], key) -> ChatResponse:
+def send_msg(msg: List[Dict[str, str]], key: str) -> ChatResponse:
     """Send a message to openai
 
     Args:
@@ -64,6 +66,7 @@ def send_msg(msg: List[Dict[str, str]], key) -> ChatResponse:
     openai.api_base = ChatSetup.api_base
     openai.api_key = key
 
+    #TODO error processing
     #TODO different parameters
     response = openai.ChatCompletion.create(
         model=ChatSetup.model,
@@ -112,7 +115,31 @@ class ChatManager:
 
         self.keys.add_key(name, key)
 
-    def send(self, msg: ChatMessage) -> Optional[ChatResponse]:
+    @typechecked
+    def send(self, msg: Union[list[ChatMessage], ChatMessage], thread_num: int = 5) -> Union[list[Optional[ChatResponse]], Optional[ChatResponse]]:
+        """ Send messages to openai
+
+        Args:
+            msg: The message to send
+            thread_num: The number of threads to use
+
+        Returns:
+            A list of ChatResponse if the ChatManager is ready, None otherwise
+
+        """
+
+        if not self.is_ready():
+            # TODO: throw error
+            return None if isinstance(msg, ChatMessage) else [None for _ in msg]
+
+        if isinstance(msg, ChatMessage):
+            return self._send(msg)
+
+        with futures.ThreadPoolExecutor(thread_num) as executor:
+            return list(executor.map(self._send, msg))
+
+
+    def _send(self, msg: ChatMessage) -> Optional[ChatResponse]:
         """Send a message to openai
 
         Args:
@@ -127,7 +154,8 @@ class ChatManager:
             # TODO: throw error
             return None
 
-        response = send_msg(msg.drain(), self.keys.get_key())
+        assert (key := self.keys.get_key())
+        response = send_msg(msg.drain(), key)
         assert(self.cur_session is not None)
         self.cur_session.push(msg, response)
         return response

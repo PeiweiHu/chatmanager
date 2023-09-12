@@ -17,6 +17,7 @@ setup(
     install_requires=[
         'openai',
         'tiktoken',
+        'typeguard',
     ],
     tests_require=[
         'pytest',
