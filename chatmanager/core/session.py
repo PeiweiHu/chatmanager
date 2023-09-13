@@ -22,22 +22,13 @@ class ChatMessage:
         self.repo = list()
 
     def push_system(self, msg: str) -> None:
-        self.push_msg({
-            "role": "system",
-            "content": msg
-        })
+        self.push_msg({"role": "system", "content": msg})
 
     def push_user(self, msg: str) -> None:
-        self.push_msg({
-            "role": "user",
-            "content": msg
-        })
+        self.push_msg({"role": "user", "content": msg})
 
     def push_assistant(self, msg: str) -> None:
-        self.push_msg({
-            "role": "assistant",
-            "content": msg
-        })
+        self.push_msg({"role": "assistant", "content": msg})
 
     def push_msg(self, message: Dict[str, str]) -> None:
         self.repo.append(message)
@@ -101,7 +92,8 @@ class ChatResponse:
         self.usage: Dict[str, int] = response["usage"]
 
     def token_usage(self, choice: str = 'total_tokens') -> int:
-        assert (choice in ['completion_tokens', 'prompt_tokens', 'total_tokens'])
+        assert (choice
+                in ['completion_tokens', 'prompt_tokens', 'total_tokens'])
         return self.response["usage"][choice]
 
     def choice_num(self) -> int:
@@ -114,7 +106,7 @@ class ChatResponse:
 
         return self.choices[num]
 
-    def get_msg(self, choice:int = 0) -> Optional[str]:
+    def get_msg(self, choice: int = 0) -> Optional[str]:
         if choice >= self.choice_num():
             return None
 
@@ -138,7 +130,9 @@ class Session:
     def push(self, msg: ChatMessage, response: ChatResponse) -> None:
         self.repo.append((msg, response))
 
-    def export(self, export_processor: Callable[[ChatMessage, ChatResponse], Any]) -> str:
+    def export(
+            self, export_processor: Callable[[ChatMessage, ChatResponse],
+                                             Any]) -> str:
         """ Export the session to a string
 
         Args:
@@ -146,4 +140,4 @@ class Session:
         """
 
         lst = list(map(lambda x: export_processor(x[0], x[1]), self.repo))
-        return json.dumps(lst, indent = 4)
+        return json.dumps(lst, indent=4)

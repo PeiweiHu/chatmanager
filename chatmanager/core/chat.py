@@ -7,9 +7,6 @@ import openai
 from chatmanager.config import ChatSetup
 from .session import Session, ChatMessage, ChatResponse
 from .key import KeyGroup
-
-
-
 """
 response = openai.ChatCompletion.create(
     model="gpt-3.5-turbo",
@@ -108,8 +105,31 @@ class ChatManager:
 
         self.keys.add_key(name, key)
 
+    def set_key_strategy(self, strategy: str) -> None:
+        """
+
+        tab = {
+            'default': self.strategy_roll_polling,
+            'roll-polling': self.strategy_roll_polling,
+            'random': self.strategy_random,
+            'least-used': self.strategy_least_used,
+            'rest-time': self.strategy_rest_time,
+        }
+
+        """
+        strategy_tab = [
+            'default', 'roll-polling', 'random', 'least-used', 'rest-time'
+        ]
+        assert (strategy in strategy_tab)
+
+        self.keys.set_strategy(strategy)
+
     @typechecked
-    def send(self, msg: Union[list[ChatMessage], ChatMessage], thread_num: int = 5) -> Union[list[Optional[ChatResponse]], Optional[ChatResponse]]:
+    def send(
+        self,
+        msg: Union[list[ChatMessage], ChatMessage],
+        thread_num: int = 5
+    ) -> Union[list[Optional[ChatResponse]], Optional[ChatResponse]]:
         """ Send messages to openai
 
         Args:
@@ -131,7 +151,6 @@ class ChatManager:
         with futures.ThreadPoolExecutor(thread_num) as executor:
             return list(executor.map(self._send, msg))
 
-
     def _send(self, msg: ChatMessage) -> Optional[ChatResponse]:
         """Send a message to openai
 
@@ -149,7 +168,7 @@ class ChatManager:
 
         assert (key := self.keys.get_key())
         response = send_msg(msg.drain(), key)
-        assert(self.cur_session is not None)
+        assert (self.cur_session is not None)
         self.cur_session.push(msg, response)
         return response
 
@@ -183,8 +202,16 @@ class ChatManager:
                 return session
         return None
 
+    def export_session(self,
+                       export_processor: Optional[Callable[
+                           [ChatMessage, ChatResponse], Any]] = None,
+                       name: Optional[str] = None) -> Optional[str]:
 
-    def export_session(self, export_processor: Callable[[ChatMessage, ChatResponse], Any], name: Optional[str] = None) -> Optional[str]:
+        def default_export(msg: ChatMessage, response: ChatResponse) -> Any:
+            return [msg.drain(), response.get_msg()]
+
+        if export_processor is None:
+            export_processor = default_export
 
         if name is None:
             if self.cur_session is None:
