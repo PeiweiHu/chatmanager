@@ -1,6 +1,9 @@
 import json
 from typing import Dict, Optional, List, Callable, Tuple, Any
 
+from chatmanager.util import num_tokens_from_messages
+from chatmanager.config import ChatSetup
+
 
 class ChatMessage:
     """Construct the message for single interaction
@@ -46,6 +49,9 @@ class ChatMessage:
 
     def drain(self) -> List[Dict[str, str]]:
         return self.repo
+
+    def token_usage(self) -> int:
+        return num_tokens_from_messages(self.drain(), ChatSetup.model)
 
     def __str__(self) -> str:
         return str(self.repo)
@@ -94,8 +100,9 @@ class ChatResponse:
         self.model: str = response["model"]
         self.usage: Dict[str, int] = response["usage"]
 
-    def token_usage(self) -> int:
-        return self.response["usage"]["total_tokens"]
+    def token_usage(self, choice: str = 'total_tokens') -> int:
+        assert (choice in ['completion_tokens', 'prompt_tokens', 'total_tokens'])
+        return self.response["usage"][choice]
 
     def choice_num(self) -> int:
         return len(self.response["choices"])

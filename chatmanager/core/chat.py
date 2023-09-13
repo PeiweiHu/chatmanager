@@ -4,17 +4,10 @@ from concurrent import futures
 from typeguard import typechecked
 import openai
 
+from chatmanager.config import ChatSetup
 from .session import Session, ChatMessage, ChatResponse
 from .key import KeyGroup
 
-
-class ChatSetup:
-    """ Setup openai interface
-
-    """
-
-    model: str = "gpt-3.5-turbo"
-    api_base: str = "https://api.openai.com/v1"
 
 
 """
@@ -159,7 +152,6 @@ class ChatManager:
         assert(self.cur_session is not None)
         self.cur_session.push(msg, response)
         return response
-
 
     def set_session(self, name: str) -> None:
         """Assign the current session
