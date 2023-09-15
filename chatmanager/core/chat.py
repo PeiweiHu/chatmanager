@@ -41,7 +41,7 @@ response = openai.ChatCompletion.create(
 """
 
 
-def send_msg(msg: List[Dict[str, str]], key: str) -> ChatResponse:
+def send_msg(msg: List[Dict[str, str]], key: str) -> Optional[ChatResponse]:
     """Send a message to openai
 
     Args:
@@ -58,10 +58,14 @@ def send_msg(msg: List[Dict[str, str]], key: str) -> ChatResponse:
 
     #TODO error processing
     #TODO different parameters
-    response = openai.ChatCompletion.create(
-        model=ChatSetup.model,
-        messages=msg,
-    )
+    try:
+        response = openai.ChatCompletion.create(
+            model=ChatSetup.model,
+            messages=msg,
+        )
+    except Exception as e:
+        print(e)  # TODO: refine output
+        return None
 
     return ChatResponse(response)
 
@@ -207,7 +211,10 @@ class ChatManager:
                            [ChatMessage, ChatResponse], Any]] = None,
                        name: Optional[str] = None) -> Optional[str]:
 
-        def default_export(msg: ChatMessage, response: ChatResponse) -> Any:
+        def default_export(msg: ChatMessage,
+                           response: Optional[ChatResponse]) -> Any:
+            if response is None:
+                return [msg.drain(), "None"]
             return [msg.drain(), response.get_msg()]
 
         if export_processor is None:
@@ -222,4 +229,4 @@ class ChatManager:
             # TODO: throw error
             return None
 
-        return session.export(export_processor)
+        return session.export(default_export)

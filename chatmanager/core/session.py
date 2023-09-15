@@ -134,14 +134,15 @@ class Session:
 
     def __init__(self, name: str) -> None:
         self.name: str = name
-        self.repo: List[Tuple[ChatMessage, ChatResponse]] = list()
+        self.repo: List[Tuple[ChatMessage, Optional[ChatResponse]]] = list()
 
-    def push(self, msg: ChatMessage, response: ChatResponse) -> None:
+    def push(self, msg: ChatMessage, response: Optional[ChatResponse]) -> None:
         self.repo.append((msg, response))
 
     def export(
-            self, export_processor: Callable[[ChatMessage, ChatResponse],
-                                             Any]) -> str:
+        self, export_processor: Callable[[ChatMessage, Optional[ChatResponse]],
+                                         Any]
+    ) -> str:
         """ Export the session to a string
 
         Args:
