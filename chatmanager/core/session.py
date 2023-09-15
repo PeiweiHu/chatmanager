@@ -1,5 +1,7 @@
 import json
-from typing import Dict, Optional, List, Callable, Tuple, Any
+from typing import Dict, Optional, List, Callable, Tuple, Any, Union
+
+from typeguard import typechecked
 
 from chatmanager.util import num_tokens_from_messages
 from chatmanager.config import ChatSetup
@@ -30,8 +32,15 @@ class ChatMessage:
     def push_assistant(self, msg: str) -> None:
         self.push_msg({"role": "assistant", "content": msg})
 
-    def push_msg(self, message: Dict[str, str]) -> None:
-        self.repo.append(message)
+    @typechecked
+    def push_msg(self, message: Union[List[Dict[str, str]], Dict[str,
+                                                                 str]]) -> None:
+        if isinstance(message, dict):
+            self.repo.append(message)
+        elif isinstance(message, list):
+            self.repo.extend(message)
+        else:
+            raise TypeError("message must be a dict or a list of dict")
 
     def del_msg(self, delete_checker: Callable[[Dict[str, str]], bool]) -> None:
         """ Delete the entries that satisfy delete_checker (i.e. return True) """
