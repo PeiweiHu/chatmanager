@@ -19,7 +19,22 @@ cd chatmanager
 
 ## Quickstart
 
-Here is an exmple to show how to use `chatmanager`.
+Here are two exmples to show how to use `chatmanager`.
+
+### Simple example
+
+```python
+from chatmanager import ChatManager, ChatMessage
+
+cm = ChatManager()
+cm.add_key('key-name', 'sk-xxxx')
+msg = ChatMessage()
+msg.push_user("How are you?")
+response = cm.send(msg)
+print(response.get_msg())
+```
+
+### More detailed example
 
 ```python
 from chatmanager import ChatManager, ChatSetup, ChatMessage, ChatResponse
@@ -35,8 +50,7 @@ ChatMessage is the interface to construct the prompts sent to the openai API.
 ChatResponse parses and stores the responses from openai API.
 """
 
-ChatSetup.api_base = "https://api.openai.com/v1" # default api_based
-
+ChatSetup.api_base = "https://api.openai.com/v1" # default api_base
 cm = ChatManager()
 
 """
@@ -60,7 +74,6 @@ Currently there are four strtegies:
 cm.add_key("key_name1", "sk-xxx")
 cm.add_key("key_name2", "sk-yyy")
 cm.keys.set_strategy("rest-time")
-
 
 """
 To construct your prompt sent to ChatGPT (or other models), you can use ChatMessage.
@@ -98,7 +111,6 @@ You can export it.
 You can also define the export manner. Please check the method export_session of
 ChatManager.
 """
-
 exported_json_str = cm.export_session("session1")
 with open('log', 'w') as w:
     w.write(exported_json_str)
