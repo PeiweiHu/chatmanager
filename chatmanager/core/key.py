@@ -38,13 +38,16 @@ class KeyGroup:
     def has_key(self) -> bool:
         return len(self.keys) != 0
 
-    def get_key(self) -> Optional[str]:
+    def get_key(self, key_name: Optional[str] = None) -> Optional[str]:
         """ Get the next key to use according to strategy """
 
         if len(self.keys) == 0:
             return None
 
-        name = self.strategy()
+        if not key_name:
+            name = self.strategy()
+        else:
+            name = key_name
 
         # update
         self.last_use_time[name] = time.time()
@@ -108,8 +111,29 @@ class KeyGroup:
         align_dict(self.use_cnt, self.keys.keys(), 0)
         align_dict(self.last_use_time, self.keys.keys(), 0)
 
+    def key_value_exist(self, key: str) -> bool:
+        """ Whether the key value exists """
+        for _ in self.keys.values():
+            if _.key == key:
+                return True
+        return False
+
+    def key_name_exist(self, name: str) -> bool:
+        """ Whether the key name exists """
+        return name in self.keys
+
+    def get_key_name(self, key: str) -> Optional[str]:
+        """ Get the name of the key with the given value """
+
+        for _ in self.keys.values():
+            if _.key == key:
+                return _.name
+        return None
+
     def add_key(self, name: str, key: str) -> None:
-        assert (name not in self.keys), "Key name already exists"
+        assert (not self.key_name_exist(name)), "Key name already exists"
+        assert (not self.key_value_exist(key)), "Key value already exists"
+
         self.keys[name] = Key(name, key)
         self.update_key_status()
 

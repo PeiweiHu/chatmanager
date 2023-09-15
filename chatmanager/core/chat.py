@@ -129,7 +129,7 @@ class ChatManager:
         self,
         msg: Union[list[ChatMessage], ChatMessage],
         thread_num: int = 5
-    ) -> Union[list[Optional[ChatResponse]], Optional[ChatResponse]]:
+    ) -> Union[List[Optional[ChatResponse]], Optional[ChatResponse]]:
         """ Send messages to openai
 
         Args:
