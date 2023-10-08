@@ -56,13 +56,28 @@ def send_msg(msg: List[Dict[str, str]], key: str) -> Optional[ChatResponse]:
     openai.api_base = ChatSetup.api_base
     openai.api_key = key
 
+    # construct the requrest body
+    # https://platform.openai.com/docs/api-reference/chat/create
+    request_body = {
+        'model': ChatSetup.model,
+        'messages': msg,
+    }
+
+    # optional args
+    setup_dict: Dict[str, Any] = {
+        'temperature': ChatSetup.temperature,
+        'top_p': ChatSetup.top_p,
+        # TODO: add more args
+    }
+
+    for k, v in setup_dict.items():
+        if v is not None:
+            request_body[k] = v
+
     #TODO error processing
     #TODO different parameters
     try:
-        response = openai.ChatCompletion.create(
-            model=ChatSetup.model,
-            messages=msg,
-        )
+        response = openai.ChatCompletion.create(**request_body)
     except Exception as e:
         print(e)  # TODO: refine output
         return None
